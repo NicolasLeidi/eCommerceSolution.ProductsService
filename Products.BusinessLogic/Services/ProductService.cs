@@ -3,18 +3,24 @@ using Products.BusinessLogic.DTO;
 using Products.DataAccess.Entities;
 using Products.BusinessLogic.RepositoryContracts;
 using Products.BusinessLogic.ServiceContracts;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace Products.BusinessLogic.Services;
 
 internal class ProductService : IProductService
 {
     private readonly IProductsRepository _productRepository;
+    private readonly IValidator<ProductAddRequest> _addRequestValidator;
+    private readonly IValidator<ProductUpdateRequest> _updateRequestValidator;
     private readonly IMapper _mapper;
 
-    public ProductService(IProductsRepository productRepository, IMapper mapper)
+    public ProductService(IProductsRepository productRepository, IMapper mapper, IValidator<ProductAddRequest> addRequestValidator, IValidator<ProductUpdateRequest> updateRequestValidator)
     {
         _productRepository = productRepository;
         _mapper = mapper;
+        _addRequestValidator = addRequestValidator;
+        _updateRequestValidator = updateRequestValidator;
     }
 
     public async Task<IList<ProductResponse>?> GetAll()
@@ -47,6 +53,14 @@ internal class ProductService : IProductService
 
     public async Task<ProductResponse?> Update(ProductUpdateRequest updateRequest)
     {
+        ValidationResult validationResult = await _updateRequestValidator.ValidateAsync(updateRequest);
+
+        if (!validationResult.IsValid)
+        {
+            var errors = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
+            throw new ArgumentException($"Validation failed: {errors}");
+        }
+
         Product? productToUpdate = await _productRepository.GetProductByCondition(ProductID: updateRequest.ProductID).ContinueWith(t => t.Result.FirstOrDefault());
         
         if (productToUpdate is null) return null;
@@ -74,9 +88,18 @@ internal class ProductService : IProductService
         return _mapper.Map<ProductResponse>(productToDelete) with { Success = deleted };
     }
 
-    public async Task<ProductResponse?> Add(ProductAddRequest registerRequest)
+    public async Task<ProductResponse?> Add(ProductAddRequest productAddRequest)
     {
-        Product? product = _mapper.Map<Product>(registerRequest);
+        ValidationResult validationResult = await _addRequestValidator.ValidateAsync(productAddRequest);
+
+        if (!validationResult.IsValid)
+        {
+            // Handle validation errors
+            string errors = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
+            throw new ArgumentException($"Validation failed: {errors}");
+        }
+
+        Product? product = _mapper.Map<Product>(productAddRequest);
 
         Product? registeredProduct = await _productRepository.AddProduct(product);
 
