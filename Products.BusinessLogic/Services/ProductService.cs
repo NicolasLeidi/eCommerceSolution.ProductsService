@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Products.BusinessLogic.DTO;
-using Products.BusinessLogic.Entities;
+using Products.DataAccess.Entities;
 using Products.BusinessLogic.RepositoryContracts;
 using Products.BusinessLogic.ServiceContracts;
 

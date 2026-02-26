@@ -1,4 +1,4 @@
-﻿namespace Products.BusinessLogic.Entities;
+﻿namespace Products.DataAccess.Entities;
 
 public class Product
 {

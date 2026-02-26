@@ -37,7 +37,7 @@ public class ProductsAPIEndpoints : ControllerBase
         return Ok(productResponse);
     }
 
-    [HttpGet("products/search/{searchString}")]
+    [HttpGet("search/{searchString}")]
     public async Task<IActionResult> SearchByContent(string searchString)
     {
         IList<ProductResponse>? productResponse = await _productService.GetSpecific(ProductNameOrCategory: searchString);

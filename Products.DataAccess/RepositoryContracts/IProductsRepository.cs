@@ -1,4 +1,4 @@
-﻿using Products.BusinessLogic.Entities;
+﻿using Products.DataAccess.Entities;
 
 namespace Products.BusinessLogic.RepositoryContracts;
 
