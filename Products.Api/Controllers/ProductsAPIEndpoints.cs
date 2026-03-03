@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
 using Products.BusinessLogic.DTO;
 using Products.BusinessLogic.ServiceContracts;
+using Products.BusinessLogic.Validators;
 
 namespace Products.Api.Controllers;
 
@@ -9,10 +11,14 @@ namespace Products.Api.Controllers;
 public class ProductsAPIEndpoints : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly ProductAddRequestValidator _productAddRequestValidator;
+    private readonly ProductUpdateRequestValidator _productUpdateRequestValidator;
 
-    public ProductsAPIEndpoints(IProductService productService)
+    public ProductsAPIEndpoints(IProductService productService, ProductAddRequestValidator productAddRequestValidator, ProductUpdateRequestValidator productUpdateRequestValidator)
     {
         _productService = productService;
+        _productAddRequestValidator = productAddRequestValidator;
+        _productUpdateRequestValidator = productUpdateRequestValidator;
     }
 
     [HttpGet("")]
@@ -30,9 +36,6 @@ public class ProductsAPIEndpoints : ControllerBase
     public async Task<IActionResult> SearchById(Guid productId)
     {
         ProductResponse? productResponse = await _productService.GetSpecific(ProductID: productId).ContinueWith(t => t?.Result?.FirstOrDefault());
-        
-        if (productResponse is null)
-            return NotFound(productResponse);
 
         return Ok(productResponse);
     }
@@ -42,21 +45,26 @@ public class ProductsAPIEndpoints : ControllerBase
     {
         IList<ProductResponse>? productResponse = await _productService.GetSpecific(ProductNameOrCategory: searchString);
 
-        if (productResponse is null)
-            return NotFound(productResponse);
-
         return Ok(productResponse);
     }
 
     [HttpPost("")]
     public async Task<IActionResult> AddProduct(ProductAddRequest productRequest)
     {
-        if (productRequest is null)
-            return BadRequest("ProductRequest cannot be null");
+        // Validate here because each microservice should be responsible for validating its own data
+        ValidationResult validationResult = await _productAddRequestValidator.ValidateAsync(productRequest);
+
+        if (!validationResult.IsValid)
+        {
+            // Handle validation errors
+            string errors = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
+            return ValidationProblem($"Validation failed: {errors}");
+        }
 
         ProductResponse? productResponse = await _productService.Add(productRequest);
+
         if (productResponse is null)
-            return BadRequest(productResponse);
+            return Problem("Error in adding product");
 
         return Ok(productResponse);
     }
@@ -64,12 +72,20 @@ public class ProductsAPIEndpoints : ControllerBase
     [HttpPut("")]
     public async Task<IActionResult> UpdateProduct(ProductUpdateRequest productRequest)
     {
-        if (productRequest is null)
-            return BadRequest("ProductRequest cannot be null");
+        // Validate here because each microservice should be responsible for validating its own data
+        ValidationResult validationResult = await _productUpdateRequestValidator.ValidateAsync(productRequest);
+
+        if (!validationResult.IsValid)
+        {
+            // Handle validation errors
+            string errors = string.Join(", ", validationResult.Errors.Select(x => x.ErrorMessage));
+            return ValidationProblem($"Validation failed: {errors}");
+        }
 
         ProductResponse? productResponse = await _productService.Update(productRequest);
+
         if (productResponse is null)
-            return BadRequest(productResponse);
+            return Problem("Error in updating product");
 
         return Ok(productResponse);
     }
@@ -78,8 +94,9 @@ public class ProductsAPIEndpoints : ControllerBase
     public async Task<IActionResult> DeleteProduct(Guid productId)
     {
         ProductResponse? productResponse = await _productService.Delete(productId);
+
         if (productResponse is null)
-            return NotFound(productResponse);
+            return Problem("Error in deleting product");
 
         return Ok(productResponse);
     }

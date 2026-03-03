@@ -61,20 +61,13 @@ internal class ProductService : IProductService
             throw new ArgumentException($"Validation failed: {errors}");
         }
 
-        Product? productToUpdate = await _productRepository.GetProductByCondition(ProductID: updateRequest.ProductID).ContinueWith(t => t.Result.FirstOrDefault());
+        Product product = _mapper.Map<Product>(updateRequest);
         
-        if (productToUpdate is null) return null;
-        
-        productToUpdate.ProductName = updateRequest.ProductName ?? productToUpdate.ProductName;
-        productToUpdate.Category = updateRequest.Category ?? productToUpdate.Category;
-        productToUpdate.UnitPrice = updateRequest.UnitPrice ?? productToUpdate.UnitPrice;
-        productToUpdate.QuantityInStock = updateRequest.QuantityInStock ?? productToUpdate.QuantityInStock;
-        
-        Product? updatedProduct =  await _productRepository.UpdateProduct(productToUpdate);
-        
-        if (updatedProduct is null) return null;
-        
-        return _mapper.Map<ProductResponse>(updatedProduct) with { Success = true };
+        Product? updatedProduct =  await _productRepository.UpdateProduct(product);
+
+        ProductResponse? response = updatedProduct is not null ? _mapper.Map<ProductResponse>(updatedProduct) with { Success = true } : null;
+
+        return response;
     }
 
     public async Task<ProductResponse?> Delete(Guid? ProductID = null)
