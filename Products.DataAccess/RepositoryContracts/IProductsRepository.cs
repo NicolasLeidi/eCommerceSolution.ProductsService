@@ -1,6 +1,6 @@
 ﻿using Products.DataAccess.Entities;
 
-namespace Products.BusinessLogic.RepositoryContracts;
+namespace Products.DataAccess.RepositoryContracts;
 
 public interface IProductsRepository
 {

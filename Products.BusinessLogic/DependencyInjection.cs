@@ -10,7 +10,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        services.AddTransient<IProductService, ProductService>();
+        services.AddScoped<IProductService, ProductService>();
         services.AddValidatorsFromAssemblyContaining<ProductAddRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<ProductUpdateRequestValidator>();
         return services;

@@ -1,7 +1,7 @@
 ﻿using Dapper;
-using Products.BusinessLogic.RepositoryContracts;
 using Products.DataAccess.DbContext;
 using Products.DataAccess.Entities;
+using Products.DataAccess.RepositoryContracts;
 
 namespace Products.DataAccess.Repositories;
 

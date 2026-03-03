@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Products.BusinessLogic.RepositoryContracts;
 using Products.DataAccess.DbContext;
 using Products.DataAccess.Repositories;
+using Products.DataAccess.RepositoryContracts;
 
 namespace Products.DataAccess;
 

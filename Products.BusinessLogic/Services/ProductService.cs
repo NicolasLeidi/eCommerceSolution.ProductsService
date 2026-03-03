@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Products.BusinessLogic.DTO;
 using Products.DataAccess.Entities;
-using Products.BusinessLogic.RepositoryContracts;
 using Products.BusinessLogic.ServiceContracts;
 using FluentValidation;
 using FluentValidation.Results;
+using Products.DataAccess.RepositoryContracts;
 
 namespace Products.BusinessLogic.Services;
 
