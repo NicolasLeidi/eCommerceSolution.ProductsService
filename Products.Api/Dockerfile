@@ -12,19 +12,21 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["eCommerce.API/eCommerce.API.csproj", "eCommerce.API/"]
-RUN dotnet restore "./eCommerce.API/eCommerce.API.csproj"
+COPY ["Products.Api/Products.Api.csproj", "Products.Api/"]
+RUN dotnet restore "./Products.Api/Products.Api.csproj"
 COPY . .
-WORKDIR "/src/eCommerce.API"
-RUN dotnet build "./eCommerce.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Products.Api"
+RUN dotnet build "./Products.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Esta fase se usa para publicar el proyecto de servicio que se copiará en la fase final.
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./eCommerce.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Products.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Esta fase se usa en producción o cuando se ejecuta desde VS en modo normal (valor predeterminado cuando no se usa la configuración de depuración)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "eCommerce.API.dll"]
+ENV PG_HOST=localhost
+ENV PG_PASSWORD=admin
+ENTRYPOINT ["dotnet", "Products.Api.dll"]
